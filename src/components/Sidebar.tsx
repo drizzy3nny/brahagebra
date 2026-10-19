@@ -1,6 +1,6 @@
 import { Tutor } from './Tutor';
 import { useDismissGesture } from '../lib/useDismissGesture';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import type { CompileError } from '../lib/compile';
 import { backspace, insertAt, moveCaret, type EditResult } from '../lib/edit';
 import type { Explanation } from '../lib/explain';
@@ -144,8 +144,20 @@ export function Sidebar(props: Props) {
     const id = activeIdRef.current;
     if (id) inputRefs.current.get(id)?.blur();
   };
-  const sheetSwipe = useDismissGesture({ enabled: kbOpen, onDrag: dragKeyboard, onDismiss: hideKeyboard });
   const [collapsed, setCollapsed] = useState(false);
+  const [sheetDrag, setSheetDrag] = useState({ offset: 0, dragging: false });
+  const sheetSwipe = useDismissGesture({
+    enabled: kbOpen || !collapsed,
+    onDrag: (offset, dragging) => {
+      if (kbOpen) dragKeyboard(offset, dragging);
+      else setSheetDrag({ offset, dragging });
+    },
+    onDismiss: () => {
+      if (kbOpen) hideKeyboard();
+      else setCollapsed(true);
+    },
+  });
+
 
   // restore the caret (and focus) after React re-renders the controlled input
   useLayoutEffect(() => {
@@ -208,7 +220,7 @@ export function Sidebar(props: Props) {
     selection.idB === idB && Math.abs(selection.x - x) <= 1e-6 * (1 + Math.abs(x));
 
   return (
-    <aside className={`sidebar${collapsed ? ' sheet-collapsed' : ''}`}>
+    <aside className={`sidebar${collapsed ? ' sheet-collapsed' : ''}${sheetDrag.dragging ? ' sheet-dragging' : ''}`} style={{ '--sheet-drag': `${sheetDrag.offset}px` } as CSSProperties}>
       <button
         type="button"
         className="sheet-grip"
@@ -235,7 +247,7 @@ export function Sidebar(props: Props) {
       </div>
       <div className="workspace-status" role="status">{props.status}</div>
       {collapsed && <button className="compact-expression" onClick={() => setCollapsed(false)}>{rows[0]?.raw || 'Tap to enter an expression'}</button>}
-      <div className={`sidebar-scroll panel-${panel}`}>
+      <div className={`sidebar-scroll panel-${panel}`} inert={collapsed}>
         <div className="editor-content">
         <header className="brand">
           <div className="brand-row">
