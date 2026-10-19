@@ -125,6 +125,7 @@ export function Sidebar(props: Props) {
   } = props;
 
   const explainRef = useRef<HTMLElement>(null);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (selection) { setPanel('steps'); setCollapsed(false); setKbOpen(false); }
   }, [selection]);
@@ -170,6 +171,24 @@ export function Sidebar(props: Props) {
       el.setSelectionRange(pos, pos);
     }
   });
+
+  useLayoutEffect(() => {
+    if (!kbOpen) return;
+    const frame = requestAnimationFrame(() => {
+      const input = inputRefs.current.get(activeIdRef.current ?? '');
+      const scroll = sidebarScrollRef.current;
+      if (!input || !scroll) return;
+      const inputRect = input.getBoundingClientRect();
+      const scrollRect = scroll.getBoundingClientRect();
+      const margin = 12;
+      if (inputRect.bottom > scrollRect.bottom - margin) {
+        scroll.scrollBy({ top: inputRect.bottom - scrollRect.bottom + margin, behavior: 'smooth' });
+      } else if (inputRect.top < scrollRect.top + margin) {
+        scroll.scrollBy({ top: inputRect.top - scrollRect.top - margin, behavior: 'smooth' });
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [kbOpen]);
 
   const focusInput = (id: string) => {
     activeIdRef.current = id;
@@ -247,7 +266,7 @@ export function Sidebar(props: Props) {
       </div>
       <div className="workspace-status" role="status">{props.status}</div>
       {collapsed && <button className="compact-expression" onClick={() => setCollapsed(false)}>{rows[0]?.raw || 'Tap to enter an expression'}</button>}
-      <div className={`sidebar-scroll panel-${panel}`} inert={collapsed}>
+      <div className={`sidebar-scroll panel-${panel}`} ref={sidebarScrollRef} inert={collapsed}>
         <div className="editor-content">
         <header className="brand">
           <div className="brand-row">
