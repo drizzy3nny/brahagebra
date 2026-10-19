@@ -25,6 +25,10 @@ export function useDismissGesture({ enabled, onDrag, onDismiss }: Options) {
       suppressClick.current = false;
       if (!enabled || !e.isPrimary || e.button !== 0) return;
       gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, lastY: e.clientY, time: e.timeStamp, velocity: 0, dragging: false };
+      // Capture immediately: a fast first movement can leave a thin handle.
+      // Keep the original button as the target so a tab tap still clicks it.
+      const target = (e.target as Element).closest('button') ?? e.currentTarget;
+      target.setPointerCapture(e.pointerId);
     },
     onPointerMove(e: PointerEvent<HTMLElement>) {
       const g = gesture.current;
@@ -34,7 +38,6 @@ export function useDismissGesture({ enabled, onDrag, onDismiss }: Options) {
         if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) { gesture.current = null; return; }
         if (dy < 5 || dy < Math.abs(dx)) return;
         g.dragging = true; suppressClick.current = true;
-        e.currentTarget.setPointerCapture(e.pointerId);
       }
       e.preventDefault();
       const elapsed = e.timeStamp - g.time;
