@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { useDismissGesture } from '../lib/useDismissGesture';
 
 export type KeyAction =
   | { kind: 'insert'; text: string; back?: number }
@@ -7,6 +8,10 @@ export type KeyAction =
   | { kind: 'enter' };
 
 interface Props {
+  open: boolean;
+  dragOffset: number;
+  dragging: boolean;
+  onDrag: (offset: number, dragging: boolean) => void;
   onKey: (a: KeyAction) => void;
   onHide: () => void;
   /** last computed answer for the `ans` key, or null when none exists yet */
@@ -155,12 +160,27 @@ const TABS: { id: TabId; label: string }[] = [
 
 /* ---------------- component ---------------- */
 
-export function MathKeyboard({ onKey, onHide, ans }: Props) {
+export function MathKeyboard({ open, dragOffset, dragging, onDrag, onKey, onHide, ans }: Props) {
   const [tab, setTab] = useState<TabId>('123');
   const [menuOpen, setMenuOpen] = useState(false);
+  const keyboardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+  const swipe = useDismissGesture({ enabled: open, onDrag, onDismiss: onHide });
+
+  useLayoutEffect(() => {
+    const keyboard = keyboardRef.current;
+    if (!keyboard) return;
+    const measure = () => setHeight(keyboard.getBoundingClientRect().height);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(keyboard);
+    return () => observer.disconnect();
+  }, []);
+
+  useLayoutEffect(() => { if (!open) setMenuOpen(false); }, [open]);
 
   // keep focus in the expression input: cancel the mousedown that would steal it
-  const swallow = (e: React.PointerEvent) => e.preventDefault();
+  const swallow = (e: React.MouseEvent) => e.preventDefault();
 
   const renderKey = (k: KeyDef, i: number) => (
     <button
@@ -176,8 +196,10 @@ export function MathKeyboard({ onKey, onHide, ans }: Props) {
   );
 
   return (
-    <div className="kb" onPointerDown={swallow} role="group" aria-label="Math keyboard">
-      <div className="kb-tabs">
+    <div className={`kb-shell${open ? ' kb-shell-open' : ''}${dragging ? ' kb-shell-dragging' : ''}`} style={{ height: open ? Math.max(0, height - dragOffset) : 0 }} inert={!open} aria-hidden={!open}>
+    <div className="kb" ref={keyboardRef} onMouseDown={swallow} role="group" aria-label="Math keyboard">
+      <button type="button" className="kb-grab" aria-label="Swipe down or tap to hide keyboard" onClick={onHide} {...swipe}><span /></button>
+      <div className="kb-tabs" {...swipe}>
         {TABS.map((t) => (
           <button
             type="button"
@@ -250,6 +272,7 @@ export function MathKeyboard({ onKey, onHide, ans }: Props) {
           ))}
         </div>
       )}
+    </div>
     </div>
   );
 }

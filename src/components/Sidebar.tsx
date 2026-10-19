@@ -1,4 +1,5 @@
 import { Tutor } from './Tutor';
+import { useDismissGesture } from '../lib/useDismissGesture';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CompileError } from '../lib/compile';
 import { backspace, insertAt, moveCaret, type EditResult } from '../lib/edit';
@@ -135,6 +136,15 @@ export function Sidebar(props: Props) {
   const [, setCaretRevision] = useState(0);
   const [panel, setPanel] = useState<'edit' | 'steps'>('edit');
   const [kbOpen, setKbOpen] = useState(false);
+  const [keyboardDrag, setKeyboardDrag] = useState({ offset: 0, dragging: false });
+  const dragKeyboard = (offset: number, dragging: boolean) => setKeyboardDrag({ offset, dragging });
+  const hideKeyboard = () => {
+    setKbOpen(false);
+    setKeyboardDrag({ offset: 0, dragging: false });
+    const id = activeIdRef.current;
+    if (id) inputRefs.current.get(id)?.blur();
+  };
+  const sheetSwipe = useDismissGesture({ enabled: kbOpen, onDrag: dragKeyboard, onDismiss: hideKeyboard });
   const [collapsed, setCollapsed] = useState(false);
 
   // restore the caret (and focus) after React re-renders the controlled input
@@ -202,9 +212,11 @@ export function Sidebar(props: Props) {
       <button
         type="button"
         className="sheet-grip"
-        aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
+        {...sheetSwipe}
+        aria-label={kbOpen ? 'Hide keyboard' : collapsed ? 'Expand panel' : 'Collapse panel'}
         aria-expanded={!collapsed}
         onClick={() => {
+          if (kbOpen) { hideKeyboard(); return; }
           setCollapsed((c) => !c);
           setKbOpen(false);
         }}
@@ -565,17 +577,15 @@ export function Sidebar(props: Props) {
           </p>
         </details>
       </div>
-      {kbOpen && (
         <MathKeyboard
+          open={kbOpen}
+          dragOffset={keyboardDrag.offset}
+          dragging={keyboardDrag.dragging}
+          onDrag={dragKeyboard}
           ans={ans}
           onKey={handleKey}
-          onHide={() => {
-            setKbOpen(false);
-            const id = activeIdRef.current;
-            if (id) inputRefs.current.get(id)?.blur();
-          }}
+          onHide={hideKeyboard}
         />
-      )}
     </aside>
   );
 }
