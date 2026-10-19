@@ -1093,3 +1093,16 @@ button:disabled { opacity: .4; cursor: default; }
 .sidebar:not(:has(.kb-shell-open)) { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .sheet-collapsed .kb-shell { height: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .kb-shell { transition-duration: 0ms; } }
+
+/* Numeric endpoints allow the solution sheet to follow a swipe and settle. */
+@media (max-width: 880px) and (min-height: 621px), (max-width: 880px) and (orientation: portrait) {
+  .sidebar {
+    height: max(150px, calc(62dvh - var(--sheet-drag, 0px)));
+    transition: height 260ms cubic-bezier(.22,.75,.22,1);
+  }
+  .sidebar.sheet-collapsed { height: 150px; }
+  .sidebar.sheet-dragging { transition: none; user-select: none; }
+  .sidebar.sheet-collapsed .sidebar-scroll { display: flex; visibility: hidden; }
+  .sidebar.sheet-collapsed .compact-expression { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sidebar { transition-duration: 0ms; } }
