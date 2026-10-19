@@ -28,6 +28,9 @@ const ENTER: KeyAction = { kind: 'enter' };
 const LEFT: KeyAction = { kind: 'move', dir: -1 };
 const RIGHT: KeyAction = { kind: 'move', dir: 1 };
 
+function Slot() { return <span className="kb-slot" aria-hidden="true" />; }
+function Fraction() { return <span className="kb-fraction" aria-hidden="true"><Slot /><span /><Slot /></span>; }
+
 /* ---------------- key tables ---------------- */
 
 function keys123(ans: string | null): KeyDef[][][] {
@@ -35,21 +38,21 @@ function keys123(ans: string | null): KeyDef[][][] {
   const math: KeyDef[][] = [
     [
       { label: <i>x</i>, aria: 'x', act: ins('x') },
-      { label: '(', aria: 'open parenthesis', act: ins('(') },
+      { label: <i>y</i>, aria: 'y', act: ins('y') },
       { label: 'π', aria: 'pi', act: ins('π') },
       { label: <i>e</i>, aria: 'e', act: ins('e') },
     ],
     [
-      { label: <span>x<sup>2</sup></span>, aria: 'x squared', act: ins('²') },
-      { label: <span>x<sup>n</sup></span>, aria: 'x to the power n', act: ins('^') },
-      { label: '√', aria: 'square root', act: ins('sqrt()', 1) },
-      { label: <span>|<i>x</i>|</span>, aria: 'absolute value', act: ins('abs()', 1) },
+      { label: <span className="kb-template"><Slot /><sup>2</sup></span>, aria: 'square template', act: ins('()^2', 3) },
+      { label: <span className="kb-template"><Slot /><sup><Slot /></sup></span>, aria: 'power template', act: ins('()^()', 4) },
+      { label: <span className="kb-template">√<Slot /></span>, aria: 'square root', act: ins('sqrt()', 1) },
+      { label: <span className="kb-template">|<Slot />|</span>, aria: 'absolute value', act: ins('abs()', 1) },
     ],
     [
       { label: '<', aria: 'less than', act: ins('<') },
       { label: '>', aria: 'greater than', act: ins('>') },
-      { label: <span className="kb-frac">a⁄b</span>, aria: 'fraction', act: ins('/') },
-      { label: 'log', aria: 'log', act: ins('log()', 1) },
+      { label: <span className="kb-template"><i>e</i><sup><Slot /></sup></span>, aria: 'exponential', act: ins('exp()', 1) },
+      { label: <Fraction />, aria: 'fraction', act: ins('()/()', 4) },
     ],
     [
       {
@@ -89,8 +92,8 @@ function keys123(ans: string | null): KeyDef[][][] {
     [
       { label: '0', aria: '0', act: ins('0') },
       { label: '.', aria: 'decimal point', act: ins('.') },
-      { label: <i>x</i>, aria: 'x', act: ins('x') },
-      { label: '→', aria: 'cursor right', act: RIGHT, fn: true },
+      { label: '‹', aria: 'cursor left', act: LEFT, fn: true },
+      { label: '›', aria: 'cursor right', act: RIGHT, fn: true },
       { label: '↵', aria: 'new expression', act: ENTER, fn: true },
     ],
   ];
@@ -154,6 +157,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 export function MathKeyboard({ onKey, onHide, ans }: Props) {
   const [tab, setTab] = useState<TabId>('123');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // keep focus in the expression input: cancel the mousedown that would steal it
   const swallow = (e: React.PointerEvent) => e.preventDefault();
@@ -180,23 +184,24 @@ export function MathKeyboard({ onKey, onHide, ans }: Props) {
             key={t.id}
             className={`kb-tab${tab === t.id ? ' kb-tab-on' : ''}`}
             aria-pressed={tab === t.id}
-            onClick={() => setTab(t.id)}
+            onClick={() => { setTab(t.id); setMenuOpen(false); }}
           >
             {t.label}
           </button>
         ))}
-        <button type="button" className="kb-hide" aria-label="Hide keyboard" onClick={onHide}>
-          ⌄
+        <button type="button" className="kb-hide" aria-label="Keyboard options" aria-expanded={menuOpen} aria-controls="keyboard-options" onClick={() => setMenuOpen(open => !open)}>
+          <span aria-hidden="true">•••</span>
         </button>
       </div>
+      {menuOpen && <div className="kb-options" id="keyboard-options"><button type="button" onClick={onHide}>Hide keyboard</button></div>}
 
       {tab === '123' && (
         <div className="kb-body">
-          <div className="kb-block kb-block-wide">
-            {keys123(ans)[1].map((row, ri) => (
-              <div className="kb-row" key={ri}>{row.map(renderKey)}</div>
-            ))}
-          </div>
+          {keys123(ans).map((block, bi) => (
+            <div className={`kb-block kb-block-${bi === 0 ? 'math' : 'num'}`} key={bi}>
+              {block.map((row, ri) => <div className="kb-row" key={ri}>{row.map(renderKey)}</div>)}
+            </div>
+          ))}
         </div>
       )}
 
