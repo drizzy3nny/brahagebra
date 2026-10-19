@@ -1082,3 +1082,14 @@ button:disabled { opacity: .4; cursor: default; }
   .kb-key { height: 38px; min-height: 38px; }
   .kb-tabs { padding-bottom: 5px; }
 }
+/* Keep the keyboard mounted so open, close and swipe cancellation animate. */
+.kb-shell { flex: none; min-height: 0; overflow: clip; transition: height 240ms cubic-bezier(.22,.75,.22,1); }
+.kb-shell-dragging { transition: none; user-select: none; }
+.kb-shell .kb { margin: 0; }
+.kb-grab { display: flex; align-items: center; justify-content: center; width: 100%; height: 22px; touch-action: none; cursor: ns-resize; }
+.kb-grab span { width: 38px; height: 4px; border-radius: 99px; background: #b9b6c4; }
+.kb-tabs, .sheet-grip { touch-action: none; }
+.kb-shell .kb-options { top: 26px; bottom: auto; }
+.sidebar:not(:has(.kb-shell-open)) { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet-collapsed .kb-shell { height: 0 !important; }
+@media (prefers-reduced-motion: reduce) { .kb-shell { transition-duration: 0ms; } }
