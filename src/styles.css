@@ -1049,3 +1049,36 @@ button:disabled { opacity: .4; cursor: default; }
   .workspace-status { display: none; }
 }
 
+/* Keyboard layout follows the supplied mobile calculator reference. */
+.kb { position: relative; background: #f3f2f7; border-top: 0; padding: 8px 5px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.kb-tabs { gap: 3px; padding: 0 2px 10px; }
+.kb-tab { padding: 7px 11px; min-height: 40px; color: #29292d; font-size: 16px; font-weight: 650; }
+.kb-tab-on, .kb-tab-on:active { background: #a592f5; color: #292334; }
+.kb-hide { min-width: 36px; min-height: 40px; color: #737278; letter-spacing: 2px; font-size: 15px; }
+.kb-body { gap: 12px; align-items: stretch; }
+.kb-block { gap: 7px; }
+.kb-row { gap: 4px; }
+.kb-block-math { flex: 4; }
+.kb-block-num { flex: 5; }
+.kb-key { height: 44px; min-height: 44px; border-radius: 8px; font-size: 22px; font-weight: 550; box-shadow: none; background: #fff; color: #151519; }
+.kb-fn { background: #d2d1d7; font-size: 23px; }
+.kb-off, .kb-off:active { background: #dedde3; color: #8c8a94; opacity: 1; }
+.kb-template { display: inline-flex; align-items: center; justify-content: center; gap: 1px; font-size: 21px; }
+.kb-slot { display: inline-block; width: 11px; height: 15px; border: 2px dotted currentColor; vertical-align: middle; }
+.kb-template sup { align-self: flex-start; margin-top: -5px; font-size: 12px; line-height: 1; }
+.kb-template sup .kb-slot { width: 7px; height: 9px; border-width: 1.5px; }
+.kb-fraction { display: grid; justify-items: center; gap: 2px; }
+.kb-fraction .kb-slot { width: 9px; height: 10px; border-width: 1.5px; }
+.kb-fraction > span:nth-child(2) { width: 17px; height: 1.5px; background: currentColor; }
+.kb-options { position: absolute; z-index: 4; right: 8px; bottom: calc(100% - 4px); padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: white; box-shadow: 0 4px 18px #0f172a1a; }
+.kb-options button { min-height: 44px; padding: 8px 16px; font-size: 14px; }
+@media (max-width: 380px) {
+  .kb-tab { padding: 7px 10px; font-size: 15px; }
+  .kb-body { gap: 10px; }
+  .kb-key { font-size: 20px; }
+  .kb-template { font-size: 19px; }
+}
+@media (max-width: 880px) and (max-height: 620px) and (orientation: landscape) {
+  .kb-key { height: 38px; min-height: 38px; }
+  .kb-tabs { padding-bottom: 5px; }
+}
