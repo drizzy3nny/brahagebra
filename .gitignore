@@ -1,0 +1,41 @@
+node_modules/
+dist/
+# Local credentials and environment files (including nested environments).
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+.envrc
+.npmrc
+.yarnrc
+.yarnrc.yml
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+credentials.json
+service-account*.json
+*-credentials.json
+secrets/
+.secrets/
+# Local tooling, agent metadata, and editor state.
+.freebuff/
+.vscode/
+.idea/
+.claude/
+.codex/
+.cursor/
+.DS_Store
+Thumbs.db
+# Generated files and local diagnostics.
+*.log
+*.tsbuildinfo
+coverage/
+.cache/
+.vite/
+tmp/
+temp/
+*.bak
+*.zip
